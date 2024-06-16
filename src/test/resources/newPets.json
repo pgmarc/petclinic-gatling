@@ -1,0 +1,10 @@
+{
+  "id": null,
+  "name": "#{petName}",
+  "birthDate": "2024-06-16",
+  "type": {
+    "id": 5,
+    "name": "bird"
+  },
+  "owner": {}
+}

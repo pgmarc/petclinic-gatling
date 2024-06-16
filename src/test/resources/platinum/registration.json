@@ -1,0 +1,31 @@
+{
+  "username": "#{username}",
+  "password": "0wn3r",
+  "firstName": "#{firstName}",
+  "lastName": "#{lastName}",
+  "city": "Seville",
+  "address": "#{address}",
+  "telephone": "123456789",
+  "authority": "Owner",
+  "clinic": {
+    "id": 1,
+    "name": "Clinic 1",
+    "address": "Av. Palmera, 26",
+    "telephone": "955684230",
+    "plan": "PLATINUM",
+    "clinicOwner": {
+      "id": 1,
+      "firstName": "John",
+      "lastName": "Doe",
+      "user": {
+        "id": 2,
+        "username": "clinicOwner1",
+        "password": "$2a$10$t.I/C4cjUdUWzqlFlSddLeh9SbZ6d8wR7mdbeIRghT355/KRKZPAi",
+        "authority": {
+          "id": 2,
+          "authority": "CLINIC_OWNER"
+        }
+      }
+    }
+  }
+}
