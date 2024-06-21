@@ -1,4 +1,4 @@
-package petclinic;
+package petclinic.platinum;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
@@ -12,11 +12,11 @@ import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
 import net.datafaker.Faker;
 
-public class PetsFeatureRampUsersSimulation extends Simulation {
-
-    private static final int BASIC_PLAN_MAX_PETS = 2;
+public class PetsConcurrentSimulation extends Simulation {
 
     Faker faker = new Faker(new Locale("es"), new Random(42));
+
+    int concurrentUsers = Integer.getInteger("users", 100);
 
     HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080");
 
@@ -28,7 +28,7 @@ public class PetsFeatureRampUsersSimulation extends Simulation {
         return session.setAll(registerDetails);
     }).exec(
             http("Registration").post("/api/v1/auth/signup")
-                    .body(ElFileBody("basic/registration.json")).asJson()
+                    .body(ElFileBody("platinum/registration.json")).asJson()
                     .check(status().is(200)));
 
     ChainBuilder login = exec(http("Login")
@@ -36,14 +36,16 @@ public class PetsFeatureRampUsersSimulation extends Simulation {
             .asJson().check(jmesPath("id").saveAs("userId"), jmesPath("token").saveAs("auth"),
                     jmesPath("pricingToken").saveAs("pricingToken")));
 
-    ChainBuilder registerPet = exec(
+    ChainBuilder petListing = group("List pets and visits [My Pets]").on(exec(
             http("Get Pets by OwnerId [My Pets List]").get("/api/v1/pets?userId=#{userId}")
                     .header("Authorization", "Bearer #{auth}")
                     .header("Pricing-Token", "#{pricingToken}"),
             pause(1),
             http("Get visits [My Pets List]").get("/api/v1/visits")
                     .header("Authorization", "Bearer #{auth}")
-                    .header("Pricing-Token", "#{pricingToken}"),
+                    .header("Pricing-Token", "#{pricingToken}")));
+
+    ChainBuilder registerPet = group("Pet form").on(
             http("Get pet types [My Pets Form]").get("/api/v1/pets/types")
                     .header("Authorization", "Bearer #{auth}")
                     .header("Pricing-Token", "#{pricingToken}"),
@@ -55,14 +57,13 @@ public class PetsFeatureRampUsersSimulation extends Simulation {
                     .body(ElFileBody("newPets.json")).asJson()
                     .check(status().is(201)));
 
-    ScenarioBuilder basicOwners = scenario("Basic Owners register pets")
-            .feed(csv("basic/owners.csv"))
-            .feed(csv("basic/pets.csv"))
-            .exec(register, login, registerPet);
+    ScenarioBuilder concurrentOwners = scenario("Platinum Owners Concurrent")
+            .feed(csv("platinum/owners-con.csv"))
+            .exec(register, login, petListing, registerPet);
 
     {
         setUp(
-                basicOwners.injectOpen(rampUsers(500).during(30)))
+                concurrentOwners.injectOpen(atOnceUsers(concurrentUsers)))
                 .protocols(httpProtocol);
     }
 
