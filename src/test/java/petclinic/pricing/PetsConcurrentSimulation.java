@@ -16,6 +16,10 @@ public class PetsConcurrentSimulation extends Simulation {
 
     Faker faker = new Faker(new Locale("es"), new Random(42));
 
+    int basicUsers = Integer.getInteger("basic", 5);
+    int goldUsers = Integer.getInteger("gold", 3);
+    int platinumUsers = Integer.getInteger("platinum", 1);
+
     HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080");
 
     ChainBuilder genData = exec(session -> {
@@ -81,9 +85,9 @@ public class PetsConcurrentSimulation extends Simulation {
 
     {
         setUp(
-                basicOwners.injectOpen(atOnceUsers(5)),
-                goldOwners.injectOpen(atOnceUsers(3)),
-                platinumOwners.injectOpen(atOnceUsers(2)))
+                basicOwners.injectOpen(atOnceUsers(basicUsers)),
+                goldOwners.injectOpen(atOnceUsers(goldUsers)),
+                platinumOwners.injectOpen(atOnceUsers(platinumUsers)))
                 .protocols(httpProtocol);
     }
 

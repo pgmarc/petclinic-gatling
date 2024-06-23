@@ -18,6 +18,14 @@ public class PetsRampSimulation extends Simulation {
 
     HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080");
 
+    int basicUsers = Integer.getInteger("basic", 5);
+    int goldUsers = Integer.getInteger("gold", 3);
+    int platinumUsers = Integer.getInteger("platinum", 1);
+
+    int basicUsersDuration = Integer.getInteger("basic", 60);
+    int goldUsersDuration = Integer.getInteger("gold", 60);
+    int platinumUsersDuration = Integer.getInteger("platinum", 60);
+
     ChainBuilder genData = exec(session -> {
         Map<String, Object> registerDetails = new HashMap<>();
         registerDetails.put("firstName", faker.name().firstName());
@@ -81,9 +89,9 @@ public class PetsRampSimulation extends Simulation {
 
     {
         setUp(
-                basicOwners.injectOpen(rampUsers(10_000).during(120)),
-                goldOwners.injectOpen(rampUsers(5_000).during(120)),
-                platinumOwners.injectOpen(rampUsers(1_000).during(120)))
+                basicOwners.injectOpen(rampUsers(basicUsers).during(basicUsersDuration)),
+                goldOwners.injectOpen(rampUsers(goldUsers).during(goldUsersDuration)),
+                platinumOwners.injectOpen(rampUsers(platinumUsers).during(platinumUsers)))
                 .protocols(httpProtocol);
     }
 
