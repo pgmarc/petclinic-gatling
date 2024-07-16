@@ -22,9 +22,9 @@ public class PetsRampSimulation extends Simulation {
     int goldUsers = Integer.getInteger("gold", 3);
     int platinumUsers = Integer.getInteger("platinum", 1);
 
-    int basicUsersDuration = Integer.getInteger("basic", 60);
-    int goldUsersDuration = Integer.getInteger("gold", 60);
-    int platinumUsersDuration = Integer.getInteger("platinum", 60);
+    int basicUsersDuration = Integer.getInteger("basicDur", 60);
+    int goldUsersDuration = Integer.getInteger("goldDur", 60);
+    int platinumUsersDuration = Integer.getInteger("platinumDur", 60);
 
     ChainBuilder genData = exec(session -> {
         Map<String, Object> registerDetails = new HashMap<>();
@@ -75,15 +75,15 @@ public class PetsRampSimulation extends Simulation {
                     .body(ElFileBody("newPets.json")).asJson()
                     .check(status().is(201)));
 
-    ScenarioBuilder basicOwners = scenario("Basic Owners concurrent")
+    ScenarioBuilder basicOwners = scenario("Basic Owners ramp")
             .feed(csv("pricing/basic-owners-ramp-final.csv"))
             .exec(registerBasic, login, petListing, registerPet);
 
-    ScenarioBuilder goldOwners = scenario("Gold owners concurrent")
+    ScenarioBuilder goldOwners = scenario("Gold owners ramp")
             .feed(csv("pricing/gold-owners-ramp-final.csv"))
             .exec(registerGold, login, petListing, registerPet);
 
-    ScenarioBuilder platinumOwners = scenario("Platinum owners concurrent")
+    ScenarioBuilder platinumOwners = scenario("Platinum owners ramp")
             .feed(csv("pricing/platinum-owners-ramp-final.csv"))
             .exec(registerPlatinum, login, petListing, registerPet);
 
