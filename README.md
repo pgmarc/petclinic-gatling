@@ -51,7 +51,7 @@ On Linux / MacOS:
 ./mvnw gatling:test -Dgatling.simulationClass=petclinic.gold.PetsFeatureRampUsersSimulation -DrampUsers=1000 -DrampDuration=30
 ./mvnw gatling:test -Dgatling.simulationClass=petclinic.gold.PetsConcurrentSimulation -Dusers=100
 ./mvnw gatling:test -Dgatling.simulationClass=petclinic.gold.PetsConcurrentSimulation -Dusers=1000
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.gold.PetsOneUserActive
+./mvnw gatling:test -Dgatling.simulationClass=petclinic.gold.CalendarFeatureSimulation -Durl=http://192.168.0.21 -Did=1
 ```
 
 On Windows:
@@ -61,7 +61,7 @@ mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.PetsRampSimulatio
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.PetsRampSimulation -Dusers=1000 -Dduration=30
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.PetsConcurrentSimulation -Dusers=100
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.PetsConcurrentSimulation -Dusers=1000
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.PetsOneUserActive
+mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.CalendarFeatureSimulation -Durl=http://192.168.0.21 -Did=1
 ```
 
 ### Platinum
@@ -73,7 +73,7 @@ On Linux / MacOS:
 ./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsFeatureRampUsersSimulation -DrampUsers=1000 -DrampDuration=30
 ./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsConcurrentSimulation -Dusers=100
 ./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsConcurrentSimulation -Dusers=1000
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsOneUserActive
+./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Did=1
 ```
 
 On Windows:
@@ -83,7 +83,7 @@ mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsRampSimul
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsRampSimulation -Dusers=1000 -Dduration=30
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsConcurrentSimulation -Dusers=100
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsConcurrentSimulation -Dusers=1000
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsOneUserActive
+mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Did=1
 ```
 
 ### Pricing
@@ -97,9 +97,10 @@ On Linux / MacOS:
 
 On Windows:
 
-````console
+```console
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.pricing.PetsRampSimulation -Dbasic=10000 -DbasicDur=30 -Dgold=5000 -DgoldDur=30 -Dplatinum=1000 -DplatinumDur=30
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.pricing.PetsConcurrentSimulation -Dbasic=10000 -Dgold=5000 -Dplatinum=1000
+```
 
 After executing `mvn gatling:test`, results are in the folder
 `target/gatling/<simulationname>-<timestamp>/index.html`
@@ -128,13 +129,15 @@ After executing `mvn gatling:test`, results are in the folder
     └── gatling/
         └── <simulationname>-<timestamp>/
             └── index.html
-````
+```
 
 ## Pricing
 
 Description of petclinic pricing
 
 ### Basic Users
+
+1. GET api/v1/pets?userId=#{authToken}
 
 ### Gold Users
 
