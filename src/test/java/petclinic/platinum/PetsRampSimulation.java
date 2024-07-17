@@ -19,7 +19,9 @@ public class PetsRampSimulation extends Simulation {
     int rampUsers = Integer.getInteger("users", 100);
     int rampDuration = Integer.getInteger("duration", 60);
 
-    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080");
+    private final static String URL = System.getProperty("url", "http://localhost:8080");
+
+    HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
 
     ChainBuilder register = exec(session -> {
         Map<String, Object> registerDetails = new HashMap<>();

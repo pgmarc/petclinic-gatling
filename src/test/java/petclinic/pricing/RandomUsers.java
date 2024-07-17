@@ -8,7 +8,9 @@ import io.gatling.javaapi.http.*;
 
 public class RandomUsers extends Simulation {
 
-    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080").disableCaching();
+    private final static String URL = System.getProperty("url", "http://localhost:8080");
+
+    HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
 
     ChainBuilder login = exec(http("Login")
             .post("/api/v1/auth/signin").body(ElFileBody("login.json"))

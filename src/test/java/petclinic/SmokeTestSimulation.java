@@ -3,28 +3,25 @@ package petclinic;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
+import java.util.Map;
+
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
 
 public class SmokeTestSimulation extends Simulation {
 
-    String jsonLogin = "{" + "\"username\":\"owner1\"," + "\"password\":\"0wn3r\"" + "}";
+    private final static String URL = System.getProperty("url", "http://localhost:8080");
 
-    String newPet = "{" + "\"id\":null,"
-            + "\"name\":\"#{petName}\","
-            + "\"birthDate\":\"2024-01-01\","
-            + "\"type\":{\"id\":5,\"name\":\"bird\"},"
-            + "\"owner\":{}}";
+    HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
 
-    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080");
+    ChainBuilder userDetails = exec(session -> session.setAll(Map.of("username", "owner1", "petName", "Smoky")));
 
     ChainBuilder login = exec(
-            http("Login").post("/api/v1/auth/signin").body(StringBody(jsonLogin)).asJson()
+            http("Login").post("/api/v1/auth/signin").body(ElFileBody("login.json")).asJson()
                     .check(jmesPath("token").saveAs("auth"),
                             jmesPath("pricingToken").saveAs("pricingToken")));
 
-    ChainBuilder delete = exec(http("Delete a pet")
-            .delete("/api/v1/pets/#{petId}")
+    ChainBuilder delete = exec(http("Delete a pet").delete("/api/v1/pets/#{petId}")
             .header("Authorization", "Bearer #{auth}")
             .header("Pricing-Token", "#{pricingToken}")
             .check(status().is(200),
@@ -36,11 +33,11 @@ public class SmokeTestSimulation extends Simulation {
                             .post("/api/v1/pets")
                             .header("Authorization", "Bearer #{auth}")
                             .header("Pricing-Token", "#{pricingToken}")
-                            .body(StringBody(newPet)).asJson()
+                            .body(ElFileBody("newPets.json")).asJson()
                             .check(status().is(201), jmesPath("id").saveAs("petId"))),
                     delete);
 
-    ScenarioBuilder owner = scenario("Smoke test").exec(login, registerPet);
+    ScenarioBuilder owner = scenario("Smoke test to check if everything is fine").exec(userDetails, login, registerPet);
 
     {
         setUp(owner.injectOpen(atOnceUsers(1))).protocols(httpProtocol);

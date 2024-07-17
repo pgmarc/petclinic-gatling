@@ -18,7 +18,9 @@ public class PetsConcurrentSimulation extends Simulation {
 
     int concurrentUsers = Integer.getInteger("users", 100);
 
-    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080");
+    private final static String URL = System.getProperty("url", "http://localhost:8080");
+
+    HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
 
     ChainBuilder register = exec(session -> {
         Map<String, Object> registerDetails = new HashMap<>();

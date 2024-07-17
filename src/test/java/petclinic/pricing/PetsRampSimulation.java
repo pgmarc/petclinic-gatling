@@ -16,7 +16,9 @@ public class PetsRampSimulation extends Simulation {
 
     Faker faker = new Faker(new Locale("es"), new Random(42));
 
-    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080");
+    private final static String URL = System.getProperty("url", "http://localhost:8080");
+
+    HttpProtocolBuilder httpProtocol = http.baseUrl(URL);
 
     int basicUsers = Integer.getInteger("basic", 5);
     int goldUsers = Integer.getInteger("gold", 3);

@@ -20,7 +20,9 @@ public class PetsConcurrentSimulation extends Simulation {
     int goldUsers = Integer.getInteger("gold", 3);
     int platinumUsers = Integer.getInteger("platinum", 1);
 
-    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080");
+    private final static String URL = System.getProperty("url", "http://localhost:8080");
+
+    HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
 
     ChainBuilder genData = exec(session -> {
         Map<String, Object> registerDetails = new HashMap<>();
