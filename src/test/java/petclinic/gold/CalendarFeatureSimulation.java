@@ -5,10 +5,19 @@ import static io.gatling.javaapi.http.HttpDsl.*;
 
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
+import petclinic.Recorder;
 
 public class CalendarFeatureSimulation extends Simulation {
 
-    HttpProtocolBuilder httpProtocol = http.baseUrl("http://localhost:8080").disableCaching();
+    private static final String URL = System.getProperty("url", "http://localhost:8080");
+
+    private static final Integer simulationId = Integer.getInteger("id", 1);
+
+    HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
+
+    Recorder recorder = new Recorder(URL + "/api/v1/metrics", this.getClass().getName(), simulationId, 100);
+
+    Thread hilo = new Thread(recorder);
 
     ChainBuilder goldUserDetails = exec(session -> {
         return session.set("username", "owner4");
@@ -20,18 +29,28 @@ public class CalendarFeatureSimulation extends Simulation {
             .check(jmesPath("token").saveAs("auth"),
                     jmesPath("pricingToken").saveAs("pricingToken")));
 
-    ChainBuilder viewCalendar = group("[Gold Feature] View your pet visits on a calendar (haveCalendar)")
-            .on(exec(http("GET Validate jwt expiration token").get("/api/v1/auth/validate?token=#{auth}"),
-                    pause(1),
-                    http("GET Get pet visits").get("/api/v1/visits")
-                            .header("Authorization", "Bearer #{auth}")
-                            .header("Pricing-Token", "#{pricingToken}")));
+    ChainBuilder viewCalendar = exec(
+            http("Get pet visits").get("/api/v1/visits")
+                    .header("Authorization", "Bearer #{auth}")
+                    .header("Pricing-Token", "#{pricingToken}"));
 
-    ScenarioBuilder idleOwners = scenario("Gold user tries to view his calendar")
+    ScenarioBuilder calendarFeature = scenario("Gold user tries to view his calendar")
             .exec(goldUserDetails, login, viewCalendar);
 
+    @Override
+    public void before() {
+        recorder.printHeader();
+        hilo.start();
+    }
+
+    @Override
+    public void after() {
+        recorder.stopRecording();
+        recorder.printFooter();
+    }
+
     {
-        setUp(idleOwners.injectOpen(atOnceUsers(1))).protocols(httpProtocol);
+        setUp(calendarFeature.injectOpen(atOnceUsers(1))).protocols(httpProtocol);
     }
 
 }
