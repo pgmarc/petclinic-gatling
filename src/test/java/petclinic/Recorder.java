@@ -7,9 +7,14 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -119,6 +124,13 @@ public class Recorder implements Runnable {
             return Optional.empty();
         }
 
+    }
+
+    public static Iterator<Map<String, Object>> generateUsers(Integer users, String scenarioName) {
+        return Stream.generate((Supplier<Map<String, Object>>) () -> {
+            UUID uuid = UUID.randomUUID();
+            return Map.of("username", uuid, "petName", uuid + "-" + scenarioName);
+        }).iterator();
     }
 
 }

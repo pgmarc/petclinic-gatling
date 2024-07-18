@@ -8,9 +8,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
+import com.github.javafaker.Faker;
+
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
-import net.datafaker.Faker;
 
 public class PetsRampSimulation extends Simulation {
 

@@ -31,6 +31,11 @@ public class RandomUsers extends Simulation {
                             .header("Authorization", "Bearer #{auth}")
                             .header("Pricing-Token", "#{pricingToken}")));
 
+    @Override
+    public void before() {
+
+    }
+
     ScenarioBuilder randomCall = scenario("Different type of owners call endpoints randomly")
             .feed(csv("pricing/random.csv").random())
             .exec(login, chooseEndpointAccordingToPlan);
