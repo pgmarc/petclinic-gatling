@@ -4,25 +4,62 @@ public final class PerfMetric {
 
     private final Long timestamp;
 
-    private final Double cpuUsage;
+    private final Double cpuLoad;
 
-    public PerfMetric(Long timestamp, Double cpuUsage) {
+    private final Double processCpuLoad;
+
+    private final Long processCpuTime;
+
+    private final Long totalMemoryOs;
+
+    private final Long freeMemoryOs;
+
+    private final Long jvmTotalMemory;
+
+    private final long jvmFreeMemory;
+
+    public PerfMetric(Long timestamp, Double cpuLoad, double processCpuLoad, long processCpuTime, long totalMemoryOs,
+            long freeMemoryOs, long jvmTotalMemory, long jvmFreeMemory) {
         this.timestamp = timestamp;
-        this.cpuUsage = cpuUsage;
-
+        this.cpuLoad = cpuLoad;
+        this.processCpuLoad = processCpuLoad;
+        this.processCpuTime = processCpuTime;
+        this.totalMemoryOs = totalMemoryOs;
+        this.freeMemoryOs = freeMemoryOs;
+        this.jvmTotalMemory = jvmTotalMemory;
+        this.jvmFreeMemory = jvmFreeMemory;
     }
 
     public Long getTimestamp() {
-        return this.timestamp;
+        return timestamp;
     }
 
-    public Double getCpuUsage() {
-        return this.cpuUsage;
+    public Double getCpuLoad() {
+        return cpuLoad;
     }
 
-    @Override
-    public String toString() {
-        return "[" + "timestamp=" + this.timestamp + ", " + "cpuUsage=" + this.cpuUsage + "]";
+    public Double getProcessCpuLoad() {
+        return processCpuLoad;
+    }
+
+    public Long getProcessCpuTime() {
+        return processCpuTime;
+    }
+
+    public Long getTotalMemoryOs() {
+        return totalMemoryOs;
+    }
+
+    public Long getFreeMemoryOs() {
+        return freeMemoryOs;
+    }
+
+    public Long getJvmTotalMemory() {
+        return jvmTotalMemory;
+    }
+
+    public Long getJvmFreeMemory() {
+        return jvmFreeMemory;
     }
 
 }

@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -100,9 +101,15 @@ public class Recorder implements Runnable {
         System.out.println("Guardando métricas en la ruta " + CSV_BASE_PATH + "/" + this.getFullName());
 
         try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
-            csv.writeRecord("timestamp", "cpu_usage");
+            csv.writeRecord("timestamp_millis", "cpu_load", "process_cpu_load", "process_cpu_time_nanosecs",
+                    "total_memory_os_bytes",
+                    "free_memory_os_bytes", "jvm_total_memory_bytes", "jvm_free_memory_bytes");
             for (PerfMetric metric : metrics) {
-                csv.writeRecord(metric.getTimestamp().toString(), metric.getCpuUsage().toString());
+                csv.writeRecord(metric.getTimestamp().toString(), metric.getCpuLoad().toString(),
+                        metric.getProcessCpuLoad().toString(), metric.getProcessCpuTime().toString(),
+                        metric.getTotalMemoryOs().toString(),
+                        metric.getFreeMemoryOs().toString(), metric.getJvmTotalMemory().toString(),
+                        metric.getJvmFreeMemory().toString());
             }
         } catch (IOException err) {
             System.err.println(err);
@@ -115,15 +122,36 @@ public class Recorder implements Runnable {
 
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            JsonNode node = objectMapper.readTree(response.body());
-            PerfMetric metric = new PerfMetric(node.get("timestamp").asLong(), node.get("cpuUsage").asDouble());
-            return Optional.of(metric);
+
+            return parseJson(response.body());
 
         } catch (IOException err) {
             err.printStackTrace();
             return Optional.empty();
         }
 
+    }
+
+    private Optional<PerfMetric> parseJson(String json) {
+        try {
+            JsonNode node = this.objectMapper.readTree(json);
+            long timestamp = node.get("timestamp").asLong();
+            long totalMemoryJVM = node.get("jvm").get("totalMemory").asLong();
+            long freeMemoryJVM = node.get("jvm").get("freeMemory").asLong();
+
+            double cpuLoad = node.get("osBean").get("cpuLoad").asDouble();
+            double proccessCpuLoad = node.get("osBean").get("processCpuLoad").asDouble();
+            long processCpuTime = node.get("osBean").get("processCpuTime").asLong();
+            long totalMemoryOs = node.get("osBean").get("totalMemoryOs").asLong();
+            long freeMemoryOs = node.get("osBean").get("freeMemoryOs").asLong();
+
+            return Optional.of(new PerfMetric(timestamp, cpuLoad, proccessCpuLoad, processCpuTime, totalMemoryOs,
+                    freeMemoryOs, totalMemoryJVM, freeMemoryJVM));
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     public static Iterator<Map<String, Object>> generateUsers(Integer users, String scenarioName) {
