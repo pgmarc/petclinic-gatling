@@ -1,10 +1,11 @@
-package petclinic;
+package petclinic.basic;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
+import petclinic.Recorder;
 
 public class PetsFeatureSimulation extends Simulation {
 
