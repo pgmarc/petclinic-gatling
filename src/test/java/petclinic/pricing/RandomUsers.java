@@ -3,6 +3,8 @@ package petclinic.pricing;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
+import java.time.Duration;
+
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
 
@@ -16,31 +18,28 @@ public class RandomUsers extends Simulation {
             .post("/api/v1/auth/signin").body(ElFileBody("login.json"))
             .asJson()
             .check(jmesPath("id").saveAs("userId"), jmesPath("token").saveAs("auth"),
-                    jmesPath("pricingToken").saveAs("pricingToken")));
+                    jmesPath("pricingToken").saveAs("pricingToken")),
+            pause(Duration.ofMillis(200)));
 
     ChainBuilder chooseEndpointAccordingToPlan = doSwitch("#{pricing}").on(
             onCase("basic").then(
-                    http("Get pets").get("/api/v1/pets?userId=#{userId}")
+                    repeat("#{times}").on(http("Get pets").get("/api/v1/pets?userId=#{userId}")
                             .header("Authorization", "Bearer #{auth}")
-                            .header("Pricing-Token", "#{pricingToken}")),
-            onCase("gold").then(http("Get vists").get("/api/v1/visits")
+                            .header("Pricing-Token", "#{pricingToken}"), pause(Duration.ofMillis(200)))),
+            onCase("gold").then(repeat("#{times}").on(http("Get vists").get("/api/v1/visits")
                     .header("Authorization", "Bearer #{auth}")
-                    .header("Pricing-Token", "#{pricingToken}")),
+                    .header("Pricing-Token", "#{pricingToken}"), pause(Duration.ofMillis(200)))),
             onCase("platinum").then(
-                    http("Get consultations").get("/api/v1/consultations")
+                    repeat("#{times}").on(http("Get consultations").get("/api/v1/consultations")
                             .header("Authorization", "Bearer #{auth}")
-                            .header("Pricing-Token", "#{pricingToken}")));
-
-    @Override
-    public void before() {
-
-    }
+                            .header("Pricing-Token", "#{pricingToken}"), pause(Duration.ofMillis(200)))));
 
     ScenarioBuilder randomCall = scenario("Different type of owners call endpoints randomly")
             .feed(csv("pricing/random.csv").random())
             .exec(login, chooseEndpointAccordingToPlan);
 
     {
-        setUp(randomCall.injectOpen(atOnceUsers(10))).protocols(httpProtocol);
+        setUp(randomCall.injectOpen(rampUsers(300).during(60))).protocols(httpProtocol);
     }
+
 }
