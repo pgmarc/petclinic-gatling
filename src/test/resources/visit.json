@@ -1,0 +1,89 @@
+{
+  "id": 5,
+  "datetime": "2024-08-01T19:32:00",
+  "description": "rabies shott",
+  "pet": {
+    "id": 1,
+    "name": "Leo",
+    "birthDate": "2010-09-07",
+    "type": {
+      "id": 1,
+      "name": "cat"
+    },
+    "owner": {
+      "id": 1,
+      "firstName": "George",
+      "lastName": "Franklin",
+      "address": "110 W. Liberty St.",
+      "city": "Sevilla",
+      "telephone": "608555103",
+      "user": {
+        "id": 4,
+        "username": "owner1",
+        "password": "$2a$10$DaS6KIEfF5CRTFrxIoGc7emY3BpZZ0.fVjwA3NiJ.BjpGNmocaS3e",
+        "authority": {
+          "id": 3,
+          "authority": "OWNER"
+        }
+      },
+      "clinic": {
+        "id": 1,
+        "name": "Clinic 1",
+        "address": "Av. Palmera, 26",
+        "telephone": "955684230",
+        "plan": "PLATINUM",
+        "clinicOwner": {
+          "id": 1,
+          "firstName": "John",
+          "lastName": "Doe",
+          "user": {
+            "id": 2,
+            "username": "clinicOwner1",
+            "password": "$2a$10$t.I/C4cjUdUWzqlFlSddLeh9SbZ6d8wR7mdbeIRghT355/KRKZPAi",
+            "authority": {
+              "id": 2,
+              "authority": "CLINIC_OWNER"
+            }
+          }
+        }
+      }
+    }
+  },
+  "vet": {
+    "id": 1,
+    "firstName": "James",
+    "lastName": "Carter",
+    "specialties": [],
+    "user": {
+      "id": 14,
+      "username": "vet1",
+      "password": "$2a$10$aeypcHWSf4YEkDAF0d.vjOLu94aS40MBUb4rOtDncFxZdo2wpkt8.",
+      "authority": {
+        "id": 4,
+        "authority": "VET"
+      }
+    },
+    "city": "Sevilla",
+    "clinic": {
+      "id": 1,
+      "name": "Clinic 1",
+      "address": "Av. Palmera, 26",
+      "telephone": "955684230",
+      "plan": "PLATINUM",
+      "clinicOwner": {
+        "id": 1,
+        "firstName": "John",
+        "lastName": "Doe",
+        "user": {
+          "id": 2,
+          "username": "clinicOwner1",
+          "password": "$2a$10$t.I/C4cjUdUWzqlFlSddLeh9SbZ6d8wR7mdbeIRghT355/KRKZPAi",
+          "authority": {
+            "id": 2,
+            "authority": "CLINIC_OWNER"
+          }
+        }
+      }
+    }
+  }
+}
