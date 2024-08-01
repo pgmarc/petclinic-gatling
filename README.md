@@ -1,3 +1,7 @@
+Este repositorio contiene varias simulaciones de usuarios desarrolladas en el contexto
+de un proyecto de investigación usando la API de [petclinic](https://github.com/gii-is-psg2/react-petclinic)
+como sistema bajo prueba.
+
 # Dependencias
 
 A parte de gatling en el pom hay 3 dependencias más:
@@ -20,25 +24,24 @@ Los archivos como los csv o los json se tiene que colocar en la carpeta
 
 # Detalles sobre el entorno de experimentación
 
-Para los experimentos se nos asignó una máquina virtual con las siguientes
-características:
+Los experimentos iban a ejecutarse en una máquina virtual que nos proveyó el
+SIC, sin embargo por problemas técnicos los experiemntos se han ejecutado
+en una máquina virtual preparada por @pgmarc.
 
-Procesador: 4 vCPU
-Memoria: 16 GB RAM
-Disco: 50 GB
-Sistema operativo: Rhel 9
+|                   | Máquina asignada | Máquina de preproducción    |
+| ----------------- | ---------------- | --------------------------- |
+| Procesador        | 4 vCPU           | 4 vCPU                      |
+| Memoria           | 16 GB            | 8 GB                        |
+| Disco             | 50 GB            | 30 GB                       |
+| Sistema Operativo | RHEL 9           | Rocky Linux 9.4 (Blue Onyx) |
 
-Por no poder acceder a la máquina virtual asignada se han realizado los experimentos
-con una máquina virtual utilizando el hipervisor tipo 2 VirtualBox con las siguientes
-características:
-
-Procesador: 4 vCPU
-Memoria: 8 GB RAM
-Disco: 30 GB
-Sistema operativo: [Rocky Linux 9.4](https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-9.4-x86_64-dvd.iso)
-(Blue Onyx), como RHEL es de pago se optó por este sistema operativo basado en RHEL.
+Puede descargar la ISO [aquí](https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-9.4-x86_64-dvd.iso)
 
 ## Paquetes a instalar en la distribución
+
+El administrador de paquetes de la distribución es `dnf`.
+
+Para desplegar la API tiene que instalar java 17 y MySQL:
 
 ```bash
 dnf install java-17-openjdk mysql mysql-server -y
