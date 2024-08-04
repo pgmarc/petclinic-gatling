@@ -177,50 +177,62 @@ public class PetsFeatureSimulation extends Simulation {
 }
 ```
 
-### Basic
+## Common
 
-#### PetsConcurrentSimulation
+### PetsConcurrentSimulation
 
-Depende del archivo `basic/owners-con.csv`
+Depende de los archivos:
+
+- `basic/owners-con.csv`
+- `gold/owners-con.csv`
+- `platinum/owners-con.csv`
 
 Argumentos:
 
 - url: URL en el que está ubicado petclinic
+- type [basic | gold | platinum]: plan de precio del propietario de mascota
 - users: Número de usuarios concurrentes
 
 Linux / MacOS:
 
 ```bash
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.basic.PetsConcurrentSimulation -Durl=http://192.168.0.21 -Dusers=100
+./mvnw gatling:test -Dgatling.simulationClass=petclinic.common.PetsConcurrentSimulation -Durl=http://192.168.0.21 -Dtype=platinum -Dusers=100
 ```
 
 Windows:
 
 ```bash
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.basic.PetsConcurrentSimulation -Durl=http://192.168.0.21 -Dusers=100
+mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.common.PetsConcurrentSimulation -Durl=http://192.168.0.21 -Dtype=platinum -Dusers=100
 ```
 
-#### PetsRamSimulation
+### PetsRampSimulation
 
-Depende del archivo `basic/owners-ramp.csv`
+Depende de los archivos:
+
+- `basic/owners-ramp.csv`
+- `gold/owners-ramp.csv`
+- `platinum/owners-ramp.csv`
 
 Argumentos:
 
+- url: URL en el que está ubicado petclinic
+- type [basic | gold | platinum]: plan de precio del propietario de mascota
 - users: Número de usuarios concurrentes
 - duration: Número de segundos que va a durar la rampa
-- url: URL en el que está ubicado petclinic
 
 Linux / MacOS:
 
 ```bash
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.basic.PetsRampSimulation -Durl=http://192.168.0.21 -Dusers=100 -Dduration=30
+./mvnw gatling:test -Dgatling.simulationClass=petclinic.common.PetsRampSimulation -Durl=http://192.168.0.21 -Dtype=gold -Dusers=100 -Dduration=30
 ```
 
 Windows:
 
 ```bash
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.basic.PetsRampSimulation -Durl=http://192.168.0.21 -Dusers=100 -Dduration=30
+mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.common.PetsRampSimulation -Durl=http://192.168.0.21 -Dtype=gold  -Dusers=100 -Dduration=30
 ```
+
+### Basic
 
 #### PetsFeatureSimulation
 
@@ -266,49 +278,6 @@ On Windows:
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.CalendarFeatureSimulation -Durl=http://192.168.0.21 -Dtype=gold -Did=1
 ```
 
-#### PetsConcurrentSimulation
-
-Depende del archivo `gold/owners-con.csv`
-
-Argumentos:
-
-- url: URL en el que está ubicado petclinic
-- users: Número de usuarios concurrentes
-
-Linux / MacOS:
-
-```bash
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.gold.PetsConcurrentSimulation -Durl=http://192.168.0.21 -Dusers=100
-```
-
-Windows:
-
-```bash
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.PetsConcurrentSimulation -Durl=http://192.168.0.21 -Dusers=100
-```
-
-#### PetsRampSimulation
-
-Depende del archivo `gold/owners-ramp.csv`
-
-Argumentos:
-
-- url: URL en el que está ubicado petclinic
-- users: Número de usuarios concurrentes
-- duration: Número de segundos que dura la rampa
-
-Linux / MacOS:
-
-```bash
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.gold.PetsRampSimulation -Durl=http://192.168.0.21 -Dusers=100
-```
-
-Windows:
-
-```bash
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.PetsRampSimulation -Durl=http://192.168.0.21 -Dusers=100
-```
-
 ### Platinum
 
 #### ConsultationsFeatureSimulation
@@ -329,49 +298,6 @@ Windows:
 
 ```bash
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Did=1
-```
-
-#### PetsConcurrentSimulation
-
-Depende del archivo `platinum/owners-con.csv`
-
-Argumentos:
-
-- url: URL en el que está ubicado petclinic
-- id: Número de identificación de la simulación. Este parámetro sirve por
-  si quiere ejecutar múltiples veces este script y generar distintas métricas.
-
-Linux / MacOS:
-
-```bash
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsConcurrentSimulation -Durl=http://192.168.0.21 -Dusers=100
-```
-
-On Windows:
-
-```bash
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsConcurrentSimulation -Durl=http://192.168.0.21 -Dusers=100
-
-```
-
-#### PetsRampSimulation
-
-Depende del archivo `platinum/owners-ramp.csv`
-
-- url: URL en el que está ubicado petclinic
-- users: Número de usuarios concurrentes
-- duration: Número de segundos que dura la rampa
-
-Linux / MacOS:
-
-```bash
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsRampSimulation -Durl=http://192.168.0.21 -Dusers=100 -Dduration=30
-```
-
-Windows:
-
-```bash
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.PetsRampSimulation -Durl=http://192.168.0.21 -Dusers=100 -Dduration=30
 ```
 
 ### Pricing
