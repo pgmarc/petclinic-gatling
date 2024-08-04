@@ -1,3 +1,5 @@
+# Petclinic monitorizado
+
 Este repositorio contiene varias simulaciones de usuarios desarrolladas en el contexto
 de un proyecto de investigación usando la API de [petclinic](https://github.com/gii-is-psg2/react-petclinic)
 como sistema bajo prueba.
@@ -76,6 +78,18 @@ El firewall que viene instalado por defecto en Rocky Linux es [firewalld](https:
 Si ejecuta la API de petclinic en el puerto 8080 de la MV tiene que redirigir el tráfico
 del puerto 80 al puerto 8080 mediante el cortafuegos utilice la CLI de `firewalld` que es
 `firewall-cmd`.
+
+Además de configurar internamente el firewall, tiene que configuración la
+redirección de puertos o "Port Forwarding". Si utiliza VirtualBox puede hacerlo de la
+siguiente manera:
+
+- Seleccione con el ratón la máquina virtual
+- Pulse en `Settings`
+- Pulse en `Network`
+- Seleccione en `Attached to:` -> `NAT`
+- Despligue la pestaña `Advanced` y abra el diálogo `Port Forwarding`
+- Arriba a la derecha pulse en el más
+- Especifique que puerto del anfitrión y del huesped redireccionar
 
 ## Simulaciones de monitorización individual
 
@@ -490,45 +504,67 @@ INSERT INTO `consultations` (id, owner_id, pet_id, is_clinic_comment, title, sta
 
 ## Casos de uso
 
+### Registro de mascotas
+
+1 Un usuario de registra como propietario de mascota en una clínica
+
+2 El usuario inicia sesión en Petclinic
+
+3 El usuario consulta sus mascotas
+
+4 El usuario registra su mascota
+
 ### Usuario platino hace una consulta a la clínica
 
+Este caso de uso es exclusivo de los usuarios platinos
+
 1 El propietario inicia sesión en la plataforma
-POST /api/v1/auth/signin
+
+- POST /api/v1/auth/signin
 
 2 El propietario accede a su historial de consultas
-GET /api/v1/auth/validate?token=auth
-GET /api/v1/consultations
-GET /api/v1/plan
+
+- GET /api/v1/auth/validate?token=auth
+- GET /api/v1/consultations
+- GET /api/v1/plan
 
 3 El propietario de mascota hace una nueva consulta
-GET /api/v1/auth/validate?token=auth
-GET /api/v1/pets?userId=userId
-POST /api/v1/consultations
+
+- GET /api/v1/auth/validate?token=auth
+- GET /api/v1/pets?userId=userId
+- POST /api/v1/consultations
 
 4 El propietario abre el chat de su consulta
-GET /api/v1/auth/validate?token=auth
-GET /api/v1/consultations/:consultationId
-GET /api/v1/consultations/:consultationId/tickets
-GET /api/v1/plan
+
+- GET /api/v1/auth/validate?token=auth
+- GET /api/v1/consultations/:consultationId
+- GET /api/v1/consultations/:consultationId/tickets
+- GET /api/v1/plan
 
 5 El propietario envía un mensaje
-POST /api/v1/consultations/:consultationId/tickets
+
+- POST /api/v1/consultations/:consultationId/tickets
 
 6 El veterinario inicia sesión
-POST /api/v1/auth/signin
+
+- POST /api/v1/auth/signin
 
 7 El veterinario consulta la bandeja de entrada de consultas de la clínica
-GET /api/v1/auth/validate?token=auth
-GET /api/v1/consultations?userId=userId
+
+- GET /api/v1/auth/validate?token=auth
+- GET /api/v1/consultations?userId=userId
 
 8 El veterinario entra en la consulta del propietario de mascota
-GET /api/v1/auth/validate?token=auth
-GET /api/v1/consultations/:consultationId
-GET /api/v1/consultations/:consultationId/tickets
+
+- GET /api/v1/auth/validate?token=auth
+- GET /api/v1/consultations/:consultationId
+- GET /api/v1/consultations/:consultationId/tickets
 
 9 El veterinario responde a la consulta del propietario
-GET /api/v1/auth/validate?token=auth
-POST /api/v1/consultations/:consultationId/tickets
+
+- GET /api/v1/auth/validate?token=auth
+- POST /api/v1/consultations/:consultationId/tickets
 
 10 El veterinario cierra la consulta del propietario
-PUT /api/v1/consultations/:consultationId
+
+- PUT /api/v1/consultations/:consultationId
