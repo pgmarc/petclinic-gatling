@@ -13,12 +13,11 @@ import com.github.javafaker.Faker;
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
 
-public class PetsConcurrentSimulation extends Simulation {
+public class VisitsConcurrentSimulation extends Simulation {
 
     Faker faker = new Faker(new Locale("es"), new Random(42));
 
     private final static String URL = System.getProperty("url", "http://localhost:8080");
-    private final static String TYPE = System.getProperty("type", "basic").toLowerCase();
     private final static int CONCURRENT_USERS = Integer.getInteger("users", 10);
 
     HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
@@ -26,15 +25,6 @@ public class PetsConcurrentSimulation extends Simulation {
     Map<String, String> sentHeaders = Map.of(
             "Authorization", "Bearer #{auth}",
             "Pricing-Token", "#{pricingToken}");
-
-    ChainBuilder register = exec(session -> {
-        return session.setAll(Map.of("firstName", faker.name().firstName(),
-                "lastName", faker.name().lastName(),
-                "address", faker.address().streetName()));
-    }).exec(
-            http("Registration").post("/api/v1/auth/signup")
-                    .body(ElFileBody(String.format("%s/registration.json", TYPE))).asJson()
-                    .check(status().is(200)));
 
     ChainBuilder login = exec(http("Login")
             .post("/api/v1/auth/signin").body(ElFileBody("login.json"))
@@ -45,29 +35,30 @@ public class PetsConcurrentSimulation extends Simulation {
     ChainBuilder petListing = group("List my pets and their visits").on(exec(
             http("Get my pets").get("/api/v1/pets")
                     .queryParam("userId", "#{userId}")
-                    .headers(sentHeaders),
+                    .headers(sentHeaders)
+                    .check(jmesPath("[0].id").saveAs("petId")),
             http("Get my pets visits").get("/api/v1/visits")
                     .headers(sentHeaders)),
             pause(Duration.ofMillis(300)));
 
-    ChainBuilder formData = exec(
-            http("Prefill data in the pet register form").get("/api/v1/pets/types")
+    ChainBuilder visitForm = group("Visit form with loaded data").on(exec(
+            http("Get details for my pet").get("/api/v1/pets/#{petId}")
                     .headers(sentHeaders)
-                    .check(jsonPath("$").ofList().saveAs("type")),
+                    .check(jsonPath("$").saveAs("pet")),
+            http("Get vet information").get("/api/v1/vets")
+                    .headers(sentHeaders)
+                    .check(jmesPath("[0]").saveAs("vet"))),
             pause(Duration.ofMillis(300)));
 
-    ChainBuilder savePet = exec(http("Save my pet").post("/api/v1/pets")
-            .headers(sentHeaders)
-            .body(ElFileBody("newPetsV2.json")).asJson()
-            .check(status().is(201), jmesPath("id").saveAs("petId")),
+    ChainBuilder registerVisit = exec(
+            http("Book a visit for my pet").post("/api/v1/pets/#{petId}/visits")
+                    .headers(sentHeaders)
+                    .body(ElFileBody("visit.json")).asJson(),
             pause(Duration.ofMillis(300)));
 
-    ChainBuilder deletePet = exec(http("Delete recently added pet").delete("/api/v1/pets/#{petId}")
-            .headers(sentHeaders));
-
-    ScenarioBuilder concurrentOwners = scenario(String.format("%s owners concurrent", TYPE.toUpperCase()))
-            .feed(csv(String.format("%s/owners-con.csv", TYPE)))
-            .exec(register, login, petListing, formData, savePet, petListing, deletePet, petListing);
+    ScenarioBuilder concurrentOwners = scenario("Pet Owners creates visits for their pets")
+            .feed(csv("common/visits-use-case.csv"))
+            .exec(login, petListing, visitForm, registerVisit);
 
     {
         setUp(concurrentOwners.injectOpen(atOnceUsers(CONCURRENT_USERS)))

@@ -16,19 +16,34 @@ A parte de gatling en el pom hay 3 dependencias más:
 
 Utilice el binario de maven del repositorio es decir `mvnw` o `mvnw.cmd`
 
-Para especificar argumentos de líneas de comandos en maven utiliza como
+Para especificar argumentos de línea de comandos en maven utiliza como
 prefijo `-D`.
 
 # Sobre gatling
 
 Los archivos como los csv o los json se tiene que colocar en la carpeta
-``src/test/resources`.
+`src/test/resources`.
+
+Se puede quitar el comentario del archivo de configuración `logback-test.xml`
+para ver en consola lo que hace Gatling en cada petición.
+
+```xml
+	<!-- uncomment and set to DEBUG to log all failing HTTP requests -->
+	<!-- uncomment and set to TRACE to log all HTTP requests -->
+	<logger name="io.gatling.http.engine.response" level="TRACE" />
+```
 
 # Detalles sobre el entorno de experimentación
 
 Los experimentos iban a ejecutarse en una máquina virtual que nos proveyó el
 SIC, sin embargo por problemas técnicos los experiemntos se han ejecutado
-en una máquina virtual preparada por @pgmarc.
+en una máquina virtual preparada por @pgmarc .
+
+No se ha asignado la misma memoria RAM porque el ordenador anfitrión dispone
+de 16 GB de RAM y no se puede destinar todos los recursos a la máquina virtual.
+
+A continuación se muestra una tabla comparando la máquina del SIC y los recursos
+destinados a la máquina virtual:
 
 |                   | Máquina asignada | Máquina de preproducción    |
 | ----------------- | ---------------- | --------------------------- |
@@ -49,18 +64,17 @@ Para desplegar la API tiene que instalar java 17 y MySQL:
 dnf install java-17-openjdk mysql mysql-server -y
 ```
 
-Comprueba si la instalación de java ha creado la variable
-de entorno `JAVA_HOME`
+Comprueba si la instalación de java ha creado la variable de entorno `JAVA_HOME`.
 
 ```bash
 echo $JAVA_HOME
 ```
 
-Si no tiene esa variable guardela en el archivo `.bashrc` de su usuario
+Si no existe esa variable, guardala en el archivo `~/.bashrc`.
 
 ```bash
 export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-XXXX/bin"
-export PATH="$PATH:JAVA_HOME"
+export PATH="$PATH:$JAVA_HOME"
 echo $JAVA_HOME # Comprueba si ya está java en el PATH´
 java --version
 ```
@@ -93,105 +107,19 @@ siguiente manera:
 
 ## Simulaciones de monitorización individual
 
-¿Por qué hacer un script de grabación de métricas?
+Primero de todo clone el repositorio:
 
-El primer programa que hice para grabar métricas estaba desarrollado en python
-y cada vez que quería grabar métricas tenía que ejecutar el script manualmente.
-Esto tiene unas cuantas implicaciones:
-
-- Tengo que saber cuando empezar a grabar
-- Tengo que saber cuando terminar de grabar
-- Requiere que la persona esté atenta al ejecutar
-  las simulación
-
-Con esto en mente, desarrollé el mismo script en java utilizando la funcionalidad de
-Gatling que permite ejecutar código java antes de empezar la simulación y después
-de terminar la simulación, los hooks `before` y `after`. De esta manera antes
-de que empiece la simulación ejecuto un hilo en paralelo mientras se ejecutan
-las simulaciónes y grabo las métricas, una vez terminada la simulación
-cierro el hilo.
-
-Para recolectar métricas del consumo de cpu, memoria, etc, se ha desarrollado
-en el contexto del proyecto un script que toma "fotos" o "snapshots" de instantes
-de tiempo de la aplicación de `petclinic`, `Recorder.java`. Los datos se guardan
-en la carpeta raiz del repositorio `metrics`.
-
-Estas fotos se toman llamando a una API `/api/v1/metrics` desarrollada exclusivamente
-para la monitorización de `petclinic`. El repositorio se encuentra en este
-[enlace](https://github.com/pgmarc/petclinic-experimentation).
-
-El constructor acepta los siguientes parámetros:
-
-```java
-public Recorder(String apiUrl, String filename, Integer id, Integer recordRateMilis);
+```bash
+git clone https://github.com/pgmarc/petclinic-gatling.git
 ```
 
-La url de la API desplegada del repositorio anterior
-El nombre del fichero que se va a guardar las métricas capturadas
-El número del experimento realizado
-La duración en milisegundos en el que va a tomar una foto aproximadamente
+Todos los comandos siguientes sirven para ejecutar las simulaciones
+de Gatling.
 
-¿Si quiero hacer una simulación de Gatling como puedo utilizar el Recorder?
+## Paquete Common
 
-Si nos fijamos en el código fuente de la simulación `PetsFeatureSimulation`:
-
-```java
-package petclinic.basic;
-
-import static io.gatling.javaapi.core.CoreDsl.*;
-import static io.gatling.javaapi.http.HttpDsl.*;
-
-import io.gatling.javaapi.core.*;
-import io.gatling.javaapi.http.*;
-import petclinic.Recorder;
-
-public class PetsFeatureSimulation extends Simulation {
-
-    private static final String URL = System.getProperty("url", "http://localhost:8080");
-
-    private static final Integer simulationId = Integer.getInteger("id", 1);
-
-    private static final String ownerType = System.getProperty("type", "basic").toLowerCase();
-
-    HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
-
-    // La clase Recorder implementa la interfaz Runnable
-    Recorder recorder = new Recorder(URL + "/api/v1/metrics", this.getClass().getName() + "-" + ownerType.toLowerCase(),
-            simulationId, 100);
-
-    // Crea un hilo por separado para grabar las métricas
-    Thread hilo = new Thread(recorder);
-
-    /* Código de tu simulación
-     * .....
-     * .....
-    */
-
-    // Este trozo de código se ejecuta antes de ejecutar
-    // la simulación por lo que puede arrancar el hilo en este momento
-    @Override
-    public void before() {
-        recorder.printHeader();
-        hilo.start();
-
-    }
-
-    // Este trozo de código se ejecuta después de ejecutar
-    // la simulación por lo que puede parar el hilo en este momento
-    @Override
-    public void after() {
-        recorder.stopRecording();
-        recorder.printFooter();
-    }
-
-    {
-        setUp(basicOwnerChecksPets.injectOpen(atOnceUsers(1)).protocols(httpProtocol));
-    }
-
-}
-```
-
-## Common
+Este paquete contiene simulaciones que las pueden hacer tanto owners
+de tipo BASIC, GOLD y PLATINUM.
 
 ### PetsConcurrentSimulation
 
@@ -246,9 +174,9 @@ Windows:
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.common.PetsRampSimulation -Durl=http://192.168.0.21 -Dtype=gold  -Dusers=100 -Dduration=30
 ```
 
-### Basic
+## Basic
 
-#### PetsFeatureSimulation
+### PetsFeatureSimulation
 
 Argumentos:
 
@@ -269,9 +197,9 @@ On Windows:
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.basic.PetsFeatureSimulation -Durl=http://192.168.0.21 -Dtype=basic -Did=1
 ```
 
-### Gold
+## Gold
 
-#### CalendarFeatureSimulation
+### CalendarFeatureSimulation
 
 Argumentos:
 
@@ -292,9 +220,9 @@ On Windows:
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.CalendarFeatureSimulation -Durl=http://192.168.0.21 -Dtype=gold -Did=1
 ```
 
-### Platinum
+## Platinum
 
-#### ConsultationsFeatureSimulation
+### ConsultationsFeatureSimulation
 
 Argumentos:
 
@@ -314,9 +242,9 @@ Windows:
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Did=1
 ```
 
-### Pricing
+## Pricing
 
-#### PetsConcurrentSimulation
+### PetsConcurrentSimulation
 
 Depende de 3 archivos:
 
@@ -343,7 +271,7 @@ On Windows:
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.pricing.PetsConcurrentSimulation -Durl=http://192.168.0.21 -Dbasic=10000 -Dgold=5000 -Dplatinum=1000
 ```
 
-#### PetsRampSimulation
+### PetsRampSimulation
 
 Depende de 3 archivos:
 
@@ -402,7 +330,7 @@ mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.pricing.RandomUsers -D
 
 El script de gatling que se utiliza para hacer la monitorización colectiva
 es `RandomUsers.java`. Utiliza el archivo `random.csv` para cargar usuarios
-virtuales.
+virtuales (Se genera con un script).
 
 El archivo tienes tres columnas:
 
@@ -429,7 +357,7 @@ desarrollado un script `DataGenerator.java` que genera dos archivos en
 la ruta `src/test/resources/pricing`:
 
 - Una archivo `random.csv` que sirve de
-  [feeder](https://docs.gatling.io/reference/script/core/session/feeders/) para el script RandomUsers.java
+  [feeder](https://docs.gatling.io/reference/script/core/session/feeders/) para el script `RandomUsers.java`
 - Un archivo `petclinic-data.sql` que contiene datos ficticios de `petclinic`
   para popular la BBDD previamente antes de ejecutar las simulación colectiva.
 
@@ -453,7 +381,7 @@ de prueba de `petclinic` de
 [PSG2](https://github.com/gii-is-psg2/react-petclinic/blob/main/src/main/resources/data.sql)
 por lo que **NO SE RECOMIENDA** alterar el archivo `data.sql` (id, owner_id, etc...).
 
-Antes de usar el archivo `data.sql` para poblar la BBDD **TIENE QUE LIMPIAR**
+Antes de usar el archivo `data.sql` para poblar la BBDD **TIENES QUE LIMPIAR**
 el archivo. Por ejemplo:
 
 Tiene que eliminar las dobles comillas `"` de todos los comandos SQL que
@@ -512,7 +440,85 @@ INSERT INTO `consultations` (id, owner_id, pet_id, is_clinic_comment, title, sta
 
 3 El usuario consulta sus mascotas
 
-4 El usuario registra su mascota
+- GET /api/v1/auth/validate?token=authJWTToken
+- GET /api/v1/pets?userId=userId
+- GET /api/v1/pets/1/visits
+
+4 El usuario accede al formulario de mascotas
+
+- GET /api/v1/auth/validate?token=authJWTToken
+- GET /api/v1/pets/types
+
+5 El usuario registra su mascota
+
+- POST /api/v1/auth/pets
+
+API BODY
+
+```json
+{
+  "id": null,
+  "name": "foo",
+  "birthDate": "2024-06-16",
+  "type": {
+    "id": 5,
+    "name": "bird"
+  },
+  "owner": {}
+}
+```
+
+6 Repetir paso 3
+
+- GET /api/v1/auth/validate?token=authJWTToken
+- GET /api/v1/pets?userId=userId
+- GET /api/v1/pets/1/visits
+
+7 Eliminar alguna mascota
+
+- DELETE /api/v1/pets/:petId
+
+Expected body:
+
+```json
+{ "message": "Pet deleted!" }
+```
+
+8 Repetir paso 3
+
+### Visitas [Gold, Platinum]
+
+1 El propietario inicia sesión en la plataforma
+
+- POST /api/v1/auth/signin
+
+Body:
+
+```json
+{ "username": "john", "password": "foobar" }
+```
+
+2 El propietario lista sus mascotas
+
+- GET /api/v1/pets?userId=userId
+- GET /api/v1/visits
+
+3 El propietario accede al formulario para concertar
+una cita para una de sus mascotas
+
+- GET /api/v1/pets/#{petId}
+- GET /api/v1/vets
+
+4 El propietario rellena el formulario y registra la
+cita
+
+- POST /api/v1/pets/#{petId}/visits
+
+Body: Mira el archivo `visit.json` para ver los atributos de primer nivel.
+
+Registrar visitar
+
+Listar visitas
 
 ### Usuario platino hace una consulta a la clínica
 

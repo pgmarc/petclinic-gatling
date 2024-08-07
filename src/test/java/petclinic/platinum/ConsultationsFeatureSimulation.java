@@ -3,25 +3,22 @@ package petclinic.platinum;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
+import java.util.Map;
+
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
-import petclinic.Recorder;
 
 public class ConsultationsFeatureSimulation extends Simulation {
 
     private static final String URL = System.getProperty("url", "http://localhost:8080");
 
-    private static final Integer simulationId = Integer.getInteger("id", 1);
+    private static final int CONCURRENT_USERS = Integer.getInteger("users", 10);
 
-    Recorder recorder = new Recorder(URL + "/api/v1/metrics", this.getClass().getName(), simulationId, 100);
-
-    Thread hilo = new Thread(recorder);
+    Map<String, String> sentHeaders = Map.of(
+            "Authorization", "Bearer #{auth}",
+            "Pricing-Token", "#{pricingToken}");
 
     HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
-
-    ChainBuilder platinumDetails = exec(session -> {
-        return session.set("username", "owner1");
-    });
 
     ChainBuilder login = exec(http("Login")
             .post("/api/v1/auth/signin").body(ElFileBody("login.json"))
@@ -32,26 +29,37 @@ public class ConsultationsFeatureSimulation extends Simulation {
 
     ChainBuilder petConsultations = exec(
             http("Get consultations").get("/api/v1/consultations")
-                    .header("Authorization", "Bearer #{auth}")
-                    .header("Pricing-Token", "#{pricingToken}"));
+                    .headers(sentHeaders));
 
-    ScenarioBuilder consultationFeature = scenario("Platinum user gets consultations")
-            .exec(platinumDetails, login, petConsultations);
+    ChainBuilder consultationForm = exec(http("Get my pets").get("/api/v1/pets")
+            .queryParam("userId", "#{userId}")
+            .headers(sentHeaders)
+            .check(jmesPath("[0]").saveAs("pet"),
+                    jmesPath("[0].owner").saveAs("owner")));
 
-    @Override
-    public void before() {
-        recorder.printHeader();
-        hilo.start();
-    }
+    ChainBuilder registerConsultation = exec(http("Post consultation to the vet").post("/api/v1/consultations")
+            .asJson()
+            .headers(sentHeaders)
+            .body(ElFileBody("consultation.json"))
+            .check(jsonPath("$.id").saveAs("consultationId")));
 
-    @Override
-    public void after() {
-        recorder.stopRecording();
-        recorder.printFooter();
-    }
+    ChainBuilder enterConsultationChat = exec(
+            http("Get in the consultation chat")
+                    .get("/api/v1/consultations/#{consultationId}/tickets")
+                    .headers(sentHeaders));
+
+    ChainBuilder sendConsultation = exec(
+            http("Send a message in the chat to the vet")
+                    .post("/api/v1/consultations/#{consultationId}/tickets")
+                    .asJson().headers(sentHeaders).body(ElFileBody("ticket.json")));
+
+    ScenarioBuilder consultationFeature = scenario("Platinum owners make consultations to vets")
+            .feed(csv("platinum/consultation-use-case.csv"))
+            .exec(login, petConsultations, consultationForm, registerConsultation,
+                    enterConsultationChat, sendConsultation);
 
     {
-        setUp(consultationFeature.injectOpen(atOnceUsers(1))).protocols(httpProtocol);
+        setUp(consultationFeature.injectOpen(atOnceUsers(CONCURRENT_USERS))).protocols(httpProtocol);
     }
 
 }

@@ -68,17 +68,17 @@ public class DataGenerator {
         this.clinicIds = new LinkedList<Integer>();
     }
 
-    private void generateGatlingCSV(String fileName) {
+    private void generateGatlingCSV(String path, String fileName) {
 
-        String path = CSV_BASE_PATH + "/pricing/" + fileName + ".csv";
-        File file = new File(path);
+        String absolutePath = String.format("%s/%s/%s.csv", CSV_BASE_PATH, path, fileName);
+        File file = new File(absolutePath);
 
         try {
             if (file.createNewFile()) {
-                System.out.println("Se ha creado el fichero " + path);
+                System.out.println("Se ha creado el fichero " + absolutePath);
             } else {
                 System.out.println(
-                        "El archivo " + path + " ya existe, se sobreescribirán los registros");
+                        "El archivo " + absolutePath + " ya existe, se sobreescribirán los registros");
             }
         } catch (IOException err) {
             err.printStackTrace();
@@ -101,7 +101,7 @@ public class DataGenerator {
         csv.writeRecord("INSERT INTO `appusers` (id, username, password, authority) VALUES");
         for (int i = 0; i < this.users; i++) {
             int userId = USER_ID_OFFSET + i;
-            String username = "owner" + userId;
+            String username = "owner" + (OWNER_USERNAME_OFFSET + i);
 
             if (i != this.users - 1) {
 
@@ -115,11 +115,11 @@ public class DataGenerator {
         }
     }
 
-    private void generateOwnersSQL(CsvWriter csv) {
+    private void generateOwnersSQL(CsvWriter csv, List<Integer> choices) {
         csv.writeRecord(
                 "INSERT INTO `owners` (id, user_id, clinic, first_name, last_name, address, city, telephone) VALUES");
         for (int i = 0; i < this.users; i++) {
-            Integer CLINIC_PRICING = this.random.nextInt(3) + 1;
+            Integer CLINIC_PRICING = choices.get(this.random.nextInt(choices.size()));
             this.clinicIds.add(CLINIC_PRICING);
             Integer ownerId = OWNER_USERNAME_OFFSET + i;
             Integer userId = USER_ID_OFFSET + i;
@@ -228,6 +228,62 @@ public class DataGenerator {
         }
     }
 
+    public void generateVisitTestCases(String sqlFileName, String csvFileName) {
+        String path = CSV_BASE_PATH + "/common/" + sqlFileName + ".sql";
+
+        File file = new File(path);
+
+        try {
+            if (file.createNewFile()) {
+                System.out.println("Se ha creado el fichero " + path);
+            } else {
+                System.out.println("El archivo " + path + " ya existe, se sobreescribirán los registros");
+            }
+        } catch (IOException err) {
+            System.err.println(err);
+        }
+
+        try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
+
+            generateAppUsersSQL(csv);
+            generateOwnersSQL(csv, List.of(2, 1));
+            generatePetsSQL(csv);
+
+        } catch (IOException err) {
+            System.err.println(err);
+        }
+
+        generateGatlingCSV("common", csvFileName);
+    }
+
+    public void generateConsulationData(String sqlFileName, String csvFileName) {
+        String path = CSV_BASE_PATH + "/platinum/" + sqlFileName + ".sql";
+
+        File file = new File(path);
+
+        try {
+            if (file.createNewFile()) {
+                System.out.println("Se ha creado el fichero " + path);
+            } else {
+                System.out.println("El archivo " + path + " ya existe, se sobreescribirán los registros");
+            }
+        } catch (IOException err) {
+            System.err.println(err);
+        }
+
+        try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
+
+            generateAppUsersSQL(csv);
+            generateOwnersSQL(csv, List.of(1));
+            generatePetsSQL(csv);
+
+        } catch (IOException err) {
+            System.err.println(err);
+        }
+
+        generateGatlingCSV("platinum", csvFileName);
+    }
+
     public void generateFiles(String fileName) {
 
         String path = CSV_BASE_PATH + "/pricing/" + fileName + ".sql";
@@ -247,7 +303,7 @@ public class DataGenerator {
         try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
 
             generateAppUsersSQL(csv);
-            generateOwnersSQL(csv);
+            generateOwnersSQL(csv, List.of(3, 2, 1));
             generatePetsSQL(csv);
             generateVisitsSQL(csv);
             generateConsultationsSQL(csv);
@@ -256,7 +312,7 @@ public class DataGenerator {
             System.err.println(err);
         }
 
-        generateGatlingCSV("random");
+        generateGatlingCSV("pricing", "random");
 
     }
 
