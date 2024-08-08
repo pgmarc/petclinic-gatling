@@ -99,6 +99,7 @@ mysql_sercure_installation
 Checklist una vez instalada la BBDD:
 
 - Crea la BBDD `petclinic`
+- Ejecuta el archivo `petclinic-schema` para crear las tablas y usuarios (Opcional si utilizas Hibernate para crear el esquema)
 - Crea un usuario `petclinic` y dale permisos en la BBDD creada
 
 ```sql
