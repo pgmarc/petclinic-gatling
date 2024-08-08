@@ -3,6 +3,7 @@ package petclinic.pricing;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -22,6 +23,10 @@ public class PetsConcurrentSimulation extends Simulation {
     int platinumUsers = Integer.getInteger("platinum", 1);
 
     private final static String URL = System.getProperty("url", "http://localhost:8080");
+
+    Map<String, String> sentHeaders = Map.of(
+            "Authorization", "Bearer #{auth}",
+            "Pricing-Token", "#{pricingToken}");
 
     HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
 
@@ -50,27 +55,25 @@ public class PetsConcurrentSimulation extends Simulation {
 
     ChainBuilder login = exec(http("Login")
             .post("/api/v1/auth/signin").body(ElFileBody("login.json"))
-            .asJson().check(jmesPath("id").saveAs("userId"), jmesPath("token").saveAs("auth"),
+            .asJson()
+            .check(jmesPath("id").saveAs("userId"),
+                    jmesPath("token").saveAs("auth"),
                     jmesPath("pricingToken").saveAs("pricingToken")));
 
     ChainBuilder petListing = group("My Pets list").on(exec(
             http("GET Pets by OwnerId").get("/api/v1/pets?userId=#{userId}")
-                    .header("Authorization", "Bearer #{auth}")
-                    .header("Pricing-Token", "#{pricingToken}"),
-            pause(1),
+                    .headers(sentHeaders),
             http("GET Visits").get("/api/v1/visits")
-                    .header("Authorization", "Bearer #{auth}")
-                    .header("Pricing-Token", "#{pricingToken}")));
+                    .headers(sentHeaders)),
+            pause(Duration.ofMillis(300)));
 
     ChainBuilder registerPet = group("My Pets form").on(
             http("GET Pet Types").get("/api/v1/pets/types")
-                    .header("Authorization", "Bearer #{auth}")
-                    .header("Pricing-Token", "#{pricingToken}"),
+                    .headers(sentHeaders),
             pause(1),
             http("POST a pet")
                     .post("/api/v1/pets")
-                    .header("Authorization", "Bearer #{auth}")
-                    .header("Pricing-Token", "#{pricingToken}")
+                    .headers(sentHeaders)
                     .body(ElFileBody("newPets.json")).asJson()
                     .check(status().is(201)));
 

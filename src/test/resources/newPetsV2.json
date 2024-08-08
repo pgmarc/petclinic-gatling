@@ -1,7 +1,0 @@
-{
-  "id": null,
-  "name": "#{petName}",
-  "birthDate": "2024-06-16",
-  "type": #{type(1).jsonStringify()},
-  "owner": {}
-}

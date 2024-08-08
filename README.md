@@ -4,6 +4,12 @@ Este repositorio contiene varias simulaciones de usuarios desarrolladas en el co
 de un proyecto de investigación usando la API de [petclinic](https://github.com/gii-is-psg2/react-petclinic)
 como sistema bajo prueba.
 
+Primero de todo descargue el repositorio:
+
+```bash
+git clone https://github.com/pgmarc/petclinic-gatling.git
+```
+
 # Dependencias
 
 A parte de gatling en el pom hay 3 dependencias más:
@@ -28,9 +34,9 @@ Se puede quitar el comentario del archivo de configuración `logback-test.xml`
 para ver en consola lo que hace Gatling en cada petición.
 
 ```xml
-	<!-- uncomment and set to DEBUG to log all failing HTTP requests -->
-	<!-- uncomment and set to TRACE to log all HTTP requests -->
-	<logger name="io.gatling.http.engine.response" level="TRACE" />
+<!-- uncomment and set to DEBUG to log all failing HTTP requests -->
+<!-- uncomment and set to TRACE to log all HTTP requests -->
+<logger name="io.gatling.http.engine.response" level="TRACE" />
 ```
 
 # Detalles sobre el entorno de experimentación
@@ -39,8 +45,9 @@ Los experimentos iban a ejecutarse en una máquina virtual que nos proveyó el
 SIC, sin embargo por problemas técnicos los experiemntos se han ejecutado
 en una máquina virtual preparada por @pgmarc .
 
-No se ha asignado la misma memoria RAM porque el ordenador anfitrión dispone
-de 16 GB de RAM y no se puede destinar todos los recursos a la máquina virtual.
+No se ha asignado la misma memoria RAM porque el ordenador de @pgmarc tiene 16 GB y no
+se puede destinar todos los recursos a la máquina virtual ya que el sistema operativo
+anfitrión también tiene que ejecutarse.
 
 A continuación se muestra una tabla comparando la máquina del SIC y los recursos
 destinados a la máquina virtual:
@@ -54,7 +61,9 @@ destinados a la máquina virtual:
 
 Puede descargar la ISO [aquí](https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-9.4-x86_64-dvd.iso)
 
-## Paquetes a instalar en la distribución
+# Configuración necesaria
+
+## Paquetes a instalar
 
 El administrador de paquetes de la distribución es `dnf`.
 
@@ -79,11 +88,28 @@ echo $JAVA_HOME # Comprueba si ya está java en el PATH´
 java --version
 ```
 
+## MySQL
+
 Después de instalar mysql y mysql-server ejecuta:
 
 ```bash
 mysql_sercure_installation
 ```
+
+Checklist una vez instalada la BBDD:
+
+- Crea la BBDD `petclinic`
+- Crea un usuario `petclinic` y dale permisos en la BBDD creada
+
+```sql
+CREATE DATABASE petclinic;
+CREATE USER 'petclinic'@'localhost' IDENTIFIED BY 'password';
+-- GRANT concede permisos para producción solo necesita esos pero se les puede
+-- dar más
+GRANT SELECT, INSERT, UPDATE, DELETE ON petclinic.* TO 'petclinic'@'localhost';
+```
+
+## Oracle VM VirtualBox
 
 Si quiere exponer una API desde la máquina virtual al sistema operativo anfitrión seguramente
 tendrá que añadir reglas al firewall (puertos, protocolos).
@@ -105,16 +131,20 @@ siguiente manera:
 - Arriba a la derecha pulse en el más
 - Especifique que puerto del anfitrión y del huesped redireccionar
 
-## Simulaciones de monitorización individual
+## Archivo de configuración Petclinic
 
-Primero de todo clone el repositorio:
+Incluye en el archivo de configuración `application.properties`:
 
-```bash
-git clone https://github.com/pgmarc/petclinic-gatling.git
+```conf
+spring.datasource.driver=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/petclinic
+spring.datasource.username=petclinic
+spring.datasource.password=petclinic
 ```
 
-Todos los comandos siguientes sirven para ejecutar las simulaciones
-de Gatling.
+# Simulaciones de monitorización individual
+
+Todos los comandos siguientes sirven para ejecutar las simulaciones de Gatling.
 
 ## Paquete Common
 
@@ -174,27 +204,53 @@ Windows:
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.common.PetsRampSimulation -Durl=http://192.168.0.21 -Dtype=gold  -Dusers=100 -Dduration=30
 ```
 
-## Basic
+### VisitsConcurrentSimulation
 
-### PetsFeatureSimulation
+Depende de los archivos:
+
+- `common/visits-use-case.csv`
+- `common/visits-use-case.sql` **IMPORTANTE** Se debe ejecutar este archivo en la BBDD antes de ejecutar el test
 
 Argumentos:
 
 - url: URL en el que está ubicado petclinic
-- type [basic | gold | platinum]: plan de precio del propietario de mascota
-- id: Número de identificación de la simulación. Este parámetro sirve por
-  si quiere ejecutar múltiples veces este script y generar distintas métricas.
+- users: Número de usuarios concurrentes
 
 Linux / MacOS:
 
 ```bash
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.basic.PetsFeatureSimulation -Durl=http://192.168.0.21 -Dtype=basic -Did=1
+./mvnw gatling:test -Dgatling.simulationClass=petclinic.common.VisitsConcurrentSimulation -Durl=http://192.168.0.21 -Dusers=100
 ```
 
-On Windows:
+Windows:
 
 ```bash
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.basic.PetsFeatureSimulation -Durl=http://192.168.0.21 -Dtype=basic -Did=1
+mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.common.VisitsConcurrentSimulation -Durl=http://192.168.0.21 -Dusers=100
+```
+
+### VisitsRampSimulation
+
+Depende de los archivos:
+
+- `common/visits-use-case.csv`
+- `common/visits-use-case.sql` **IMPORTANTE** Se debe ejecutar este archivo en la BBDD antes de ejecutar el test
+
+Argumentos:
+
+- url: URL en el que está ubicado petclinic
+- users: Número de usuarios concurrentes
+- duration: Número de segundos que va a durar la rampa
+
+Linux / MacOS:
+
+```bash
+./mvnw gatling:test -Dgatling.simulationClass=petclinic.common.VisitsRampSimulation -Durl=http://192.168.0.21 -Dusers=100 -Dduration=30
+```
+
+Windows:
+
+```bash
+mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.common.VisitsRampSimulation -Durl=http://192.168.0.21 -Dusers=100 -Dduration=30
 ```
 
 ## Gold
@@ -224,22 +280,27 @@ mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.CalendarFeatureSi
 
 ### ConsultationsFeatureSimulation
 
+Depende de los archivos:
+
+- `platinum/consultation-use-case.csv`
+- `platinum/consultation-use-case.sql` **IMPORTANTE** se debe ejecutar este archivo en la BBDD antes de iniciar la simulación.
+  Contiene usuarios tipo platinum.
+
 Argumentos:
 
 - url: URL en el que está ubicado petclinic
-- id: Número de identificación de la simulación. Este parámetro sirve por
-  si quiere ejecutar múltiples veces este script y generar distintas métricas.
+- users: Número de usuarios concurrentes
 
 On Linux / MacOS:
 
 ```bash
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Did=1
+./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Dusers=100
 ```
 
 Windows:
 
 ```bash
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Did=1
+mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Dusers=100
 ```
 
 ## Pricing
@@ -301,9 +362,9 @@ On Windows:
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.pricing.PetsRampSimulation -Dbasic=10000 -DbasicDur=30 -Dgold=5000 -DgoldDur=30 -Dplatinum=1000 -DplatinumDur=30
 ```
 
-## Simulación de monitorización colectiva
+# Simulación de monitorización colectiva
 
-### TLDR
+## TLDR
 
 Para ejecutar la simulación de monitorización colectiva mediante línea de
 comandos necesita pasar como argumento la url que quiere probar. Por defecto
@@ -326,7 +387,7 @@ Windows:
 mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.pricing.RandomUsers -Durl=http://192.168.0.21
 ```
 
-### Detalles
+## Detalles
 
 El script de gatling que se utiliza para hacer la monitorización colectiva
 es `RandomUsers.java`. Utiliza el archivo `random.csv` para cargar usuarios
@@ -361,7 +422,7 @@ la ruta `src/test/resources/pricing`:
 - Un archivo `petclinic-data.sql` que contiene datos ficticios de `petclinic`
   para popular la BBDD previamente antes de ejecutar las simulación colectiva.
 
-## VSCode
+## Ejecutar generador en VSCode
 
 Para ejecutar el generador haga click derecho en el archivo `Main.java` > `Run Java`.
 
@@ -430,9 +491,9 @@ INSERT INTO `consultations` (id, owner_id, pet_id, is_clinic_comment, title, sta
   que genera datos dependiendo del contexto en el que estés (ciudades, direcciones
   nombres, apellidos...)
 
-## Casos de uso
+# Casos de uso
 
-### Registro de mascotas
+## Registro de mascotas [BASIC, GOLD, PLATINUM]
 
 1 Un usuario de registra como propietario de mascota en una clínica
 
@@ -486,7 +547,7 @@ Expected body:
 
 8 Repetir paso 3
 
-### Visitas [Gold, Platinum]
+## Visitas [BASIC, GOLD, PLATINUM]
 
 1 El propietario inicia sesión en la plataforma
 
@@ -516,11 +577,7 @@ cita
 
 Body: Mira el archivo `visit.json` para ver los atributos de primer nivel.
 
-Registrar visitar
-
-Listar visitas
-
-### Usuario platino hace una consulta a la clínica
+## Usuario hace una consulta a la clínica [PLATINUM]
 
 Este caso de uso es exclusivo de los usuarios platinos
 
@@ -550,27 +607,3 @@ Este caso de uso es exclusivo de los usuarios platinos
 5 El propietario envía un mensaje
 
 - POST /api/v1/consultations/:consultationId/tickets
-
-6 El veterinario inicia sesión
-
-- POST /api/v1/auth/signin
-
-7 El veterinario consulta la bandeja de entrada de consultas de la clínica
-
-- GET /api/v1/auth/validate?token=auth
-- GET /api/v1/consultations?userId=userId
-
-8 El veterinario entra en la consulta del propietario de mascota
-
-- GET /api/v1/auth/validate?token=auth
-- GET /api/v1/consultations/:consultationId
-- GET /api/v1/consultations/:consultationId/tickets
-
-9 El veterinario responde a la consulta del propietario
-
-- GET /api/v1/auth/validate?token=auth
-- POST /api/v1/consultations/:consultationId/tickets
-
-10 El veterinario cierra la consulta del propietario
-
-- PUT /api/v1/consultations/:consultationId

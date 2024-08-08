@@ -31,7 +31,7 @@ public class PetsConcurrentSimulation extends Simulation {
         return session.setAll(Map.of("firstName", faker.name().firstName(),
                 "lastName", faker.name().lastName(),
                 "address", faker.address().streetName()));
-    }).exec(
+    }).exec(http("Get clinics").get("/api/v1/clinics").asJson(),
             http("Registration").post("/api/v1/auth/signup")
                     .body(ElFileBody(String.format("%s/registration.json", TYPE))).asJson()
                     .check(status().is(200)));
@@ -53,12 +53,12 @@ public class PetsConcurrentSimulation extends Simulation {
     ChainBuilder formData = exec(
             http("Prefill data in the pet register form").get("/api/v1/pets/types")
                     .headers(sentHeaders)
-                    .check(jsonPath("$").ofList().saveAs("type")),
+                    .check(jmesPath("[#{randomInt(0,6)}]").saveAs("type")),
             pause(Duration.ofMillis(300)));
 
     ChainBuilder savePet = exec(http("Save my pet").post("/api/v1/pets")
             .headers(sentHeaders)
-            .body(ElFileBody("newPetsV2.json")).asJson()
+            .body(ElFileBody("pet-registration.json")).asJson()
             .check(status().is(201), jmesPath("id").saveAs("petId")),
             pause(Duration.ofMillis(300)));
 

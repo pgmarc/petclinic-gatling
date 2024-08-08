@@ -246,7 +246,7 @@ public class DataGenerator {
         try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
 
             generateAppUsersSQL(csv);
-            generateOwnersSQL(csv, List.of(2, 1));
+            generateOwnersSQL(csv, List.of(GOLD, PLATINUM));
             generatePetsSQL(csv);
 
         } catch (IOException err) {
@@ -274,7 +274,7 @@ public class DataGenerator {
         try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
 
             generateAppUsersSQL(csv);
-            generateOwnersSQL(csv, List.of(1));
+            generateOwnersSQL(csv, List.of(PLATINUM));
             generatePetsSQL(csv);
 
         } catch (IOException err) {
@@ -303,7 +303,7 @@ public class DataGenerator {
         try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
 
             generateAppUsersSQL(csv);
-            generateOwnersSQL(csv, List.of(3, 2, 1));
+            generateOwnersSQL(csv, List.of(BASIC, GOLD, PLATINUM));
             generatePetsSQL(csv);
             generateVisitsSQL(csv);
             generateConsultationsSQL(csv);

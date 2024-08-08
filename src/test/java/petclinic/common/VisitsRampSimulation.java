@@ -13,12 +13,13 @@ import com.github.javafaker.Faker;
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
 
-public class VisitsConcurrentSimulation extends Simulation {
+public class VisitsRampSimulation extends Simulation {
 
     Faker faker = new Faker(new Locale("es"), new Random(42));
 
     private final static String URL = System.getProperty("url", "http://localhost:8080");
-    private final static int CONCURRENT_USERS = Integer.getInteger("users", 10);
+    private final static int USERS = Integer.getInteger("users", 100);
+    private final static int DURATION = Integer.getInteger("duration", 60);
 
     HttpProtocolBuilder httpProtocol = http.baseUrl(URL).disableCaching();
 
@@ -53,16 +54,15 @@ public class VisitsConcurrentSimulation extends Simulation {
     ChainBuilder registerVisit = exec(
             http("Book a visit for my pet").post("/api/v1/pets/#{petId}/visits")
                     .headers(sentHeaders)
-                    .body(ElFileBody("visit.json"))
-                    .asJson(),
+                    .body(ElFileBody("visit.json")).asJson(),
             pause(Duration.ofMillis(300)));
 
-    ScenarioBuilder concurrentOwners = scenario("Pet Owners creates visits for their pets [CONCURRENT]")
+    ScenarioBuilder concurrentOwners = scenario("Pet Owners creates visits for their pets [RAMP]")
             .feed(csv("common/visits-use-case.csv"))
             .exec(login, petListing, visitForm, registerVisit);
 
     {
-        setUp(concurrentOwners.injectOpen(atOnceUsers(CONCURRENT_USERS)))
+        setUp(concurrentOwners.injectOpen(rampUsers(USERS).during(DURATION)))
                 .protocols(httpProtocol);
     }
 
