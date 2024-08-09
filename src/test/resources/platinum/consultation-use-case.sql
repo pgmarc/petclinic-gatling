@@ -1,4 +1,4 @@
-"INSERT INTO `appusers` (id, username, password, authority) VALUES"
+INSERT INTO `appusers` (id, username, password, authority) VALUES
 (20,'owner11','$2a$10$DaS6KIEfF5CRTFrxIoGc7emY3BpZZ0.fVjwA3NiJ.BjpGNmocaS3e',3),
 (21,'owner12','$2a$10$DaS6KIEfF5CRTFrxIoGc7emY3BpZZ0.fVjwA3NiJ.BjpGNmocaS3e',3),
 (22,'owner13','$2a$10$DaS6KIEfF5CRTFrxIoGc7emY3BpZZ0.fVjwA3NiJ.BjpGNmocaS3e',3),
@@ -999,7 +999,8 @@
 (1017,'owner1008','$2a$10$DaS6KIEfF5CRTFrxIoGc7emY3BpZZ0.fVjwA3NiJ.BjpGNmocaS3e',3),
 (1018,'owner1009','$2a$10$DaS6KIEfF5CRTFrxIoGc7emY3BpZZ0.fVjwA3NiJ.BjpGNmocaS3e',3),
 (1019,'owner1010','$2a$10$DaS6KIEfF5CRTFrxIoGc7emY3BpZZ0.fVjwA3NiJ.BjpGNmocaS3e',3);
-"INSERT INTO `owners` (id, user_id, clinic, first_name, last_name, address, city, telephone) VALUES"
+
+INSERT INTO `owners` (id, user_id, clinic, first_name, last_name, address, city, telephone) VALUES
 (11,20,1,'Arlie','Moore','Lake','Willshire','111111111'),
 (12,21,1,'Anthony','Sipes','New','Amiport','111111111'),
 (13,22,1,'Shirly','Dickinson','Port','South Francesport','111111111'),
@@ -2000,7 +2001,8 @@
 (1008,1017,1,'Denis','Senger','New','Emmerichborough','111111111'),
 (1009,1018,1,'Mindi','Dietrich','New','Lake Madgeland','111111111'),
 (1010,1019,1,'Lazaro','Flatley','Port','East Arnoldo','111111111');
-"INSERT INTO `pets` (id, name, birth_date, type_id, owner_id) VALUES"
+
+INSERT INTO `pets` (id, name, birth_date, type_id, owner_id) VALUES
 (14,'Oreo','2021-05-30',5,11),
 (15,'Sophie','2020-03-11',4,12),
 (16,'Diesel','2019-04-30',4,13),
