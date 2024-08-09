@@ -8,7 +8,7 @@ import java.util.Map;
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
 
-public class ConsultationsFeatureSimulation extends Simulation {
+public class ConsultationsConcurrentSimulation extends Simulation {
 
     private static final String URL = System.getProperty("url", "http://localhost:8080");
 
@@ -32,6 +32,7 @@ public class ConsultationsFeatureSimulation extends Simulation {
                     .headers(sentHeaders));
 
     ChainBuilder consultationForm = exec(http("Get my pets").get("/api/v1/pets")
+            .asJson()
             .queryParam("userId", "#{userId}")
             .headers(sentHeaders)
             .check(jmesPath("[0]").saveAs("pet"),
@@ -51,9 +52,11 @@ public class ConsultationsFeatureSimulation extends Simulation {
     ChainBuilder sendConsultation = exec(
             http("Send a message in the chat to the vet")
                     .post("/api/v1/consultations/#{consultationId}/tickets")
-                    .asJson().headers(sentHeaders).body(ElFileBody("ticket.json")));
+                    .asJson()
+                    .headers(sentHeaders)
+                    .body(ElFileBody("ticket.json")));
 
-    ScenarioBuilder consultationFeature = scenario("Platinum owners make consultations to vets")
+    ScenarioBuilder consultationFeature = scenario("Platinum owners make consultations to vets [CONCURRENT]")
             .feed(csv("platinum/consultation-use-case.csv"))
             .exec(login, petConsultations, consultationForm, registerConsultation,
                     enterConsultationChat, sendConsultation);

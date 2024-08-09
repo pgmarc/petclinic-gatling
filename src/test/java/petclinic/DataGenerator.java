@@ -17,6 +17,35 @@ import de.siegmar.fastcsv.writer.CsvWriter;
 
 public class DataGenerator {
 
+    public enum Pricing {
+        BASIC(3, "basic"), GOLD(2, "gold"), PLATINUM(1, "platinum");
+
+        private final int id;
+        private final String name;
+
+        private Pricing(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() {
+            return this.id;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public static Pricing fromId(int id) {
+            for (Pricing pricing : values()) {
+                if (pricing.getId() == id) {
+                    return pricing;
+                }
+            }
+            return null;
+        }
+    }
+
     private final static String CSV_BASE_PATH = "src/test/resources";
 
     private final static int USER_ID_OFFSET = 20;
@@ -33,24 +62,15 @@ public class DataGenerator {
 
     private final static int OWNER_AUTHORITY_ID = 3;
 
-    private final static Map<Integer, String> CLINICS_PRICING = new LinkedHashMap<>();
-
     private final static Map<Integer, List<Integer>> CLINICS_VETS = new LinkedHashMap<>();
 
     private final static List<String> CONSULTATION_STATUS = List.of("PENDING", "ANSWERED", "CLOSED");
 
-    private static final int PLATINUM = 1;
-    private static final int GOLD = 2;
-    private static final int BASIC = 3;
-
     static {
-        CLINICS_PRICING.put(PLATINUM, "platinum");
-        CLINICS_PRICING.put(GOLD, "gold");
-        CLINICS_PRICING.put(BASIC, "basic");
 
-        CLINICS_VETS.put(PLATINUM, List.of(1, 2));
-        CLINICS_VETS.put(GOLD, List.of(3, 4));
-        CLINICS_VETS.put(BASIC, List.of(5, 6));
+        CLINICS_VETS.put(Pricing.PLATINUM.getId(), List.of(1, 2));
+        CLINICS_VETS.put(Pricing.GOLD.getId(), List.of(3, 4));
+        CLINICS_VETS.put(Pricing.BASIC.getId(), List.of(5, 6));
     }
 
     private final Integer users;
@@ -87,9 +107,9 @@ public class DataGenerator {
         try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
             csv.writeRecord("username", "pricing", "times");
             for (int i = 0; i < this.users; i++) {
-                String pricing = CLINICS_PRICING.get(this.clinicIds.get(i));
+                Pricing pricing = Pricing.fromId(this.clinicIds.get(i));
                 int ownerUsernameId = OWNER_USERNAME_OFFSET + i;
-                csv.writeRecord("owner" + ownerUsernameId, pricing, Integer.toString(1));
+                csv.writeRecord("owner" + ownerUsernameId, pricing.getName(), Integer.toString(1));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -115,11 +135,11 @@ public class DataGenerator {
         }
     }
 
-    private void generateOwnersSQL(CsvWriter csv, List<Integer> choices) {
+    private void generateOwnersSQL(CsvWriter csv, List<Pricing> choices) {
         csv.writeRecord(
                 "INSERT INTO `owners` (id, user_id, clinic, first_name, last_name, address, city, telephone) VALUES");
         for (int i = 0; i < this.users; i++) {
-            Integer CLINIC_PRICING = choices.get(this.random.nextInt(choices.size()));
+            Integer CLINIC_PRICING = choices.get(this.random.nextInt(choices.size())).getId();
             this.clinicIds.add(CLINIC_PRICING);
             Integer ownerId = OWNER_USERNAME_OFFSET + i;
             Integer userId = USER_ID_OFFSET + i;
@@ -199,7 +219,7 @@ public class DataGenerator {
                 "INSERT INTO `consultations` (id, owner_id, pet_id, is_clinic_comment, title, status, creation_date) VALUES");
         for (int i = 0; i < this.users; i++) {
 
-            if (this.clinicIds.get(i) != PLATINUM) {
+            if (this.clinicIds.get(i) != Pricing.PLATINUM.getId()) {
                 continue;
             }
 
@@ -246,7 +266,7 @@ public class DataGenerator {
         try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
 
             generateAppUsersSQL(csv);
-            generateOwnersSQL(csv, List.of(GOLD, PLATINUM));
+            generateOwnersSQL(csv, List.of(Pricing.GOLD, Pricing.PLATINUM));
             generatePetsSQL(csv);
 
         } catch (IOException err) {
@@ -274,7 +294,7 @@ public class DataGenerator {
         try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
 
             generateAppUsersSQL(csv);
-            generateOwnersSQL(csv, List.of(PLATINUM));
+            generateOwnersSQL(csv, List.of(Pricing.PLATINUM));
             generatePetsSQL(csv);
 
         } catch (IOException err) {
@@ -303,7 +323,7 @@ public class DataGenerator {
         try (CsvWriter csv = CsvWriter.builder().build(new FileWriter(file))) {
 
             generateAppUsersSQL(csv);
-            generateOwnersSQL(csv, List.of(BASIC, GOLD, PLATINUM));
+            generateOwnersSQL(csv, List.of(Pricing.BASIC, Pricing.GOLD, Pricing.PLATINUM));
             generatePetsSQL(csv);
             generateVisitsSQL(csv);
             generateConsultationsSQL(csv);

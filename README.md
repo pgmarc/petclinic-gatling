@@ -279,7 +279,7 @@ mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.gold.CalendarFeatureSi
 
 ## Platinum
 
-### ConsultationsFeatureSimulation
+### ConsultationsConcurrentSimulation
 
 Depende de los archivos:
 
@@ -295,13 +295,39 @@ Argumentos:
 On Linux / MacOS:
 
 ```bash
-./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Dusers=100
+./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsConcurrentSimulation -Durl=192.168.0.21 -Dusers=100
 ```
 
 Windows:
 
 ```bash
-mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsFeatureSimulation -Durl=192.168.0.21 -Dusers=100
+mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsConcurrentSimulation -Durl=192.168.0.21 -Dusers=100
+```
+
+### ConsultationsRampSimulation
+
+Depende de los archivos:
+
+- `platinum/consultation-use-case.csv`
+- `platinum/consultation-use-case.sql` **IMPORTANTE** se debe ejecutar este archivo en la BBDD antes de iniciar la simulación.
+  Contiene usuarios tipo platinum.
+
+Argumentos:
+
+- url: URL en el que está ubicado petclinic
+- users: Número de usuarios concurrentes
+- duration: Número de segundos que va a durar la rampa
+
+On Linux / MacOS:
+
+```bash
+./mvnw gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsRampSimulation -Durl=192.168.0.21 -Dusers=100 -Dduration=30
+```
+
+Windows:
+
+```bash
+mvnw.cmd gatling:test -Dgatling.simulationClass=petclinic.platinum.ConsultationsRampSimulation -Durl=192.168.0.21 -Dusers=100 -Dduration=30
 ```
 
 ## Pricing
